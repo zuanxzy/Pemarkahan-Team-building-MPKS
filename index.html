@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Pemarkahan Team Building — MPKS</title>
   <link rel="stylesheet" href="style.css">
+  <meta name="theme-color" content="#1a1a1a">
 </head>
 <body>
   <div class="wrap">
@@ -26,8 +27,8 @@
         <label>Bil. Pasukan</label>
         <input id="teamCount" type="number" min="2" max="20" value="2">
         <button id="applyCount">Set</button>
-        <button id="addEvent">+ Tambah Acara</button>
-        <button id="removeEvent">− Kurangkan Acara</button>
+        <button id="addEventTop">+ Tambah Acara</button>
+        <button id="removeEventTop">− Kurangkan Acara</button>
         <button id="exportCsv">Eksport CSV</button>
         <button id="reset">Reset</button>
       </div>
@@ -42,11 +43,11 @@
 
         <div class="events" id="events"></div>
 
-<div class="bottom-action" style="margin-top:16px; display:flex; gap:10px; align-items:center;">
-  <button id="calculate" class="primary">Kira Jumlah & Kedudukan</button>
-  <button id="addEvent">+ Tambah Acara</button>
-  <button id="removeEvent" class="danger">– Kurangkan Acara</button>
-</div>
+        <div class="bottom-action" style="margin-top:16px; display:flex; gap:10px; align-items:center;">
+          <button id="calculate" class="primary">Kira Jumlah & Kedudukan</button>
+          <button id="addEvent">+ Tambah Acara</button>
+          <button id="removeEvent" class="danger">– Kurangkan Acara</button>
+        </div>
       </section>
 
       <aside class="card summary">
@@ -61,7 +62,6 @@
     <footer class="muted">Auto-simpan aktif — semua data kekal walaupun halaman ditutup.</footer>
   </div>
 
-  <script src="script.js"></script>
+  <script src="script.js" defer></script>
 </body>
 </html>
-
