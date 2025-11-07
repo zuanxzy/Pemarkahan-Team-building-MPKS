@@ -127,6 +127,7 @@ window.addEventListener("DOMContentLoaded", () => {
     if (eventsData.length <= 1) return alert('Tidak boleh padam — sekurang-kurangnya mesti ada satu acara.');
     if (confirm(`Padam "${eventsData[eventsData.length - 1].name}" ?`)) {
       eventsData.pop();
+      localStorage.setItem('eventsData', JSON.stringify(eventsData)); // simpan perubahan
       createEventsContainer(); loadData(); renderTeamSummary(); saveData();
     }
   });
@@ -188,7 +189,7 @@ window.addEventListener("DOMContentLoaded", () => {
     saveData();
   }
 
- // ===== CETAK ACARA KE BAWAH =====
+  // ===== CETAK (VERSI RINGAN UNTUK PHONE) =====
   document.getElementById('printBtn').addEventListener('click', () => {
     calculateAll();
     const totals = computeTotals();
@@ -221,16 +222,22 @@ window.addEventListener("DOMContentLoaded", () => {
 
     laporanHTML += `</body></html>`;
 
-    const w = window.open('', 'laporan-' + Date.now());
-    w.document.write(laporanHTML);
-    w.document.close();
-    w.focus();
-    setTimeout(() => { w.print(); w.close(); }, 500);
+    const printWin = window.open("", "_blank");
+    printWin.document.write(laporanHTML);
+    printWin.document.close();
+    setTimeout(() => {
+      printWin.focus();
+      printWin.print();
+      printWin.close();
+    }, 600);
   });
 
   // ===== RESET =====
   document.getElementById('reset').addEventListener('click', () => {
-    if (confirm('Padam semua data?')) { localStorage.clear(); location.reload(); }
+    if (confirm('Padam semua data?')) {
+      localStorage.clear();
+      location.reload();
+    }
   });
 
   // ===== MULA =====
