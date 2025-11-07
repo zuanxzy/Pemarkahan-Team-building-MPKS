@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="ms">
+<head>
+  <meta charset="utf-8">
+  <title>Cetak Pemarkahan MPKS</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body { background: white; color: black; }
+    .no-print { display: none; }
+  </style>
+</head>
+<body>
+  <div id="printArea"></div>
+
+  <script>
+    // Ambil data dari localStorage
+    const events = JSON.parse(localStorage.getItem('events') || '[]');
+    const teams = JSON.parse(localStorage.getItem('teams') || '[]');
+
+    // Hasilkan layout sama dengan yang asal
+    let html = '<h1>Pemarkahan Team Building — Unit Perundangan MPKS</h1>';
+    html += '<table border="1" cellspacing="0" cellpadding="6"><tr><th>Acara</th>';
+    teams.forEach(t => html += `<th>${t}</th>`);
+    html += '</tr>';
+
+    events.forEach(ev => {
+      html += `<tr><td>${ev.name}</td>`;
+      teams.forEach((t, i) => {
+        html += `<td>${ev.scores[i] || ''}</td>`;
+      });
+      html += '</tr>';
+    });
+    html += '</table>';
+
+    document.getElementById('printArea').innerHTML = html;
+
+    // Auto buka dialog cetak lepas betul² load
+    window.onload = () => {
+      setTimeout(() => window.print(), 500);
+    };
+  </script>
+</body>
+</html>
