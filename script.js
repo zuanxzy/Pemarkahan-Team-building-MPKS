@@ -147,6 +147,21 @@ window.addEventListener("DOMContentLoaded", () => {
     renderTeamSummary();
     saveData();
   });
+// ===== BUTANG KURANGKAN ACARA =====
+document.getElementById('removeEvent').addEventListener('click', () => {
+  if (eventsData.length <= 1) {
+    alert('Tidak boleh padam — sekurang-kurangnya mesti ada satu acara.');
+    return;
+  }
+
+  if (confirm(`Padam "${eventsData[eventsData.length - 1].name}" ?`)) {
+    eventsData.pop(); // buang acara terakhir
+    createEventsContainer();
+    loadData();
+    renderTeamSummary();
+    saveData();
+  }
+});
 
   // ===== BUTANG SET BIL. PASUKAN =====
   document.getElementById('applyCount').addEventListener('click', () => {
