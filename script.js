@@ -297,7 +297,7 @@ document.getElementById('printBtn').addEventListener('click', () => {
   </div>
   </body></html>`;
 
-  const w = window.open('', '_blank');
+const w = window.open('', 'laporan-' + Date.now());
   w.document.write(laporanHTML);
   w.document.close();
   w.focus();
