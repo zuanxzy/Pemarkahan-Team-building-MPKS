@@ -2,7 +2,7 @@
 <html lang="ms">
 <head>
   <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Pemarkahan Team Building — MPKS</title>
   <link rel="stylesheet" href="style.css">
 </head>
@@ -37,10 +37,10 @@
 
         <div class="events" id="events"></div>
 
-<div class="bottom-action" style="margin-top:16px; display:flex; gap:10px; align-items:center;">
-  <button id="calculate" class="primary">Kira Jumlah & Kedudukan</button>
-  <button id="addEvent">+ Tambah Acara</button>
-</div>
+        <div class="bottom-action" style="margin-top:16px; display:flex; gap:10px; align-items:center;">
+          <button id="calculate" class="primary">Kira Jumlah & Kedudukan</button>
+          <button id="addEvent">+ Tambah Acara</button>
+        </div>
       </section>
 
       <aside class="card summary">
@@ -56,6 +56,9 @@
   </div>
 
   <script>
+  // Jalankan semua kod lepas DOM siap
+  window.addEventListener("DOMContentLoaded", () => {
+
     // ===== DATA & KONFIGURASI =====
     let eventsData = JSON.parse(localStorage.getItem('eventsData')) || [
       { name: 'Acara 1' },
@@ -97,16 +100,6 @@
       });
     }
 
-    // ===== TAMBAH ACARA =====
-    document.getElementById('addEvent').addEventListener('click', () => {
-      const newIndex = eventsData.length + 1;
-      eventsData.push({ name: `Acara ${newIndex}` });
-      createEventsContainer();
-      loadData();
-      renderTeamSummary();
-      saveData();
-    });
-
     // ===== CIPTA BARIS PASUKAN =====
     function populateEventRows(eventNum) {
       const tbody = document.getElementById(`event-${eventNum}-body`);
@@ -122,6 +115,30 @@
         tbody.appendChild(tr);
       }
     }
+
+    // ===== TAMBAH ACARA =====
+    document.getElementById('addEvent').addEventListener('click', () => {
+      const newIndex = eventsData.length + 1;
+      eventsData.push({ name: `Acara ${newIndex}` });
+      createEventsContainer();
+      loadData();
+      renderTeamSummary();
+      saveData();
+    });
+
+    // ===== BUTANG SET BIL. PASUKAN =====
+    document.getElementById('applyCount').addEventListener('click', () => {
+      const v = parseInt(document.getElementById('teamCount').value, 10);
+      if (!v || v < 2) {
+        alert('Sila masukkan bilangan pasukan minimum 2');
+        return;
+      }
+      teamCount = v;
+      createEventsContainer();
+      loadData();
+      renderTeamSummary();
+      saveData();
+    });
 
     // ===== KIRA JUMLAH =====
     function computeTotals() {
@@ -161,7 +178,7 @@
       renderTeamSummary();
     }
 
-    // ===== PAPAR RINGKASAN =====
+    // ===== RINGKASAN PASUKAN =====
     function renderTeamSummary() {
       const container=document.getElementById('teamsList');
       container.innerHTML='';
@@ -214,53 +231,49 @@
       renderTeamSummary();
     }
 
-    // ===== EVENT LISTENERS =====
-document.getElementById('printBtn').addEventListener('click', () => {
-  document.activeElement.blur();
-  saveData();
-  calculateAll();
+    // ===== CETAK =====
+    document.getElementById('printBtn').addEventListener('click', () => {
+      document.activeElement.blur();
+      saveData();
+      calculateAll();
 
-  const totals = computeTotals();
-  const container = document.getElementById('teamsList');
+      const totals = computeTotals();
+      const container = document.getElementById('teamsList');
 
-  // Bina table khas untuk cetakan
-  const printTable = document.createElement('table');
-  printTable.className = 'print-summary';
-  printTable.innerHTML = `
-    <thead>
-      <tr>
-        <th>Bil</th>
-        <th>Nama Pasukan</th>
-        <th>Jumlah Markah</th>
-        <th>Kedudukan</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  `;
+      const printTable = document.createElement('table');
+      printTable.className = 'print-summary';
+      printTable.innerHTML = `
+        <thead>
+          <tr>
+            <th>Bil</th>
+            <th>Nama Pasukan</th>
+            <th>Jumlah Markah</th>
+            <th>Kedudukan</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      `;
 
-  const tbody = printTable.querySelector('tbody');
-  for (let i = 1; i <= teamCount; i++) {
-    const name = document.querySelector(`.teamName[data-team='${i}']`)?.value || `Pasukan ${i}`;
-    const total = totals[i] || 0;
-    const rank = getRankForTeam(i, totals);
-    const row = document.createElement('tr');
-    row.innerHTML = `<td>${i}</td><td>${name}</td><td>${total.toFixed(1)}</td><td>${rank}</td>`;
-    tbody.appendChild(row);
-  }
+      const tbody = printTable.querySelector('tbody');
+      for (let i = 1; i <= teamCount; i++) {
+        const name = document.querySelector(`.teamName[data-team='${i}']`)?.value || `Pasukan ${i}`;
+        const total = totals[i] || 0;
+        const rank = getRankForTeam(i, totals);
+        const row = document.createElement('tr');
+        row.innerHTML = `<td>${i}</td><td>${name}</td><td>${total.toFixed(1)}</td><td>${rank}</td>`;
+        tbody.appendChild(row);
+      }
 
-  // Gantikan kad dengan table
-  container.innerHTML = '';
-  container.appendChild(printTable);
+      container.innerHTML = '';
+      container.appendChild(printTable);
+      document.body.setAttribute('data-print-date', new Date().toLocaleString('ms-MY'));
+      setTimeout(() => window.print(), 300);
+    });
 
-  document.body.setAttribute('data-print-date', new Date().toLocaleString('ms-MY'));
-
-  setTimeout(() => {
-    window.print();
-  }, 300);
-});
-
+    // ===== RESET =====
     document.getElementById('reset').addEventListener('click',()=>{if(confirm('Padam semua data?')){localStorage.clear();location.reload();}});
 
+    // ===== INPUT UPDATE =====
     document.addEventListener('input', e=>{
       if(e.target && (e.target.classList.contains('teamName')||e.target.classList.contains('score')||e.target.classList.contains('note'))){
         renderTeamSummary();
@@ -268,7 +281,8 @@ document.getElementById('printBtn').addEventListener('click', () => {
     });
 
     // ===== EKSPORT CSV =====
-    function exportCSV(){
+    document.getElementById('exportCsv').addEventListener('click', () => {
+      calculateAll();
       const totals=computeTotals();
       let csv=`Acara,No,Pasukan,Markah,Catatan\n`;
       eventsData.forEach((ev,index)=>{
@@ -287,13 +301,19 @@ document.getElementById('printBtn').addEventListener('click', () => {
       });
       const blob=new Blob([csv],{type:'text/csv'});
       const url=URL.createObjectURL(blob);
-      const a=document.createElement('a');a.href=url;a.download='pemarkahan_team_building.csv';a.click();URL.revokeObjectURL(url);
-    }
+      const a=document.createElement('a');
+      a.href=url;
+      a.download='pemarkahan_team_building.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+    });
 
     // ===== MULA =====
     createEventsContainer();
     loadData();
     renderTeamSummary();
+
+  });
   </script>
 </body>
 </html>
