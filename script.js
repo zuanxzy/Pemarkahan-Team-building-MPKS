@@ -188,34 +188,38 @@ window.addEventListener("DOMContentLoaded", () => {
     saveData();
   }
 
-  // ===== CETAK =====
+ // ===== CETAK ACARA KE BAWAH =====
   document.getElementById('printBtn').addEventListener('click', () => {
     calculateAll();
     const totals = computeTotals();
     const date = dateInput.value ? new Date(dateInput.value).toLocaleDateString('ms-MY') : '—';
-    const eventNames = eventsData.map(e => e.name);
-    const rowsHTML = [];
 
-    for (let i = 1; i <= teamCount; i++) {
-      const name = document.querySelector(`.teamName[data-team='${i}']`)?.value || `Pasukan ${i}`;
-      const scores = eventNames.map((_, idx) => {
-        const val = parseFloat(document.querySelector(`.score[data-event='${idx + 1}'][data-team='${i}']`)?.value) || 0;
-        return `<td>${val.toFixed(1)}</td>`;
-      }).join('');
-      rowsHTML.push(`<tr><td>${i}</td><td>${name}</td>${scores}<td><strong>${totals[i].toFixed(1)}</strong></td><td>${getRankForTeam(i, totals)}</td></tr>`);
-    }
-
-    const laporanHTML = `
-    <html><head><title>Laporan Pemarkahan — MPKS</title>
+    let laporanHTML = `
+    <html><head><title>Laporan Pemarkahan</title>
     <style>
       body { font-family: "Times New Roman", serif; margin: 20mm; color:#000; }
       .header{text-align:center;} .header img{width:80px;height:80px;}
       table{width:100%;border-collapse:collapse;margin-top:20px;}
-      th,td{border:1px solid #000;padding:6px;text-align:center;} th{background:#f2f2f2;}
+      th,td{border:1px solid #000;padding:6px;text-align:center;}
+      th{background:#f2f2f2;}
     </style></head><body>
-    <div class="header"><img src="logo-mpks.png"><h2>Laporan Pemarkahan</h2><p>Tarikh: ${date}</p></div>
-    <table><thead><tr><th>Bil</th><th>Nama Pasukan</th>${eventNames.map(n=>`<th>${n}</th>`).join('')}<th>Jumlah</th><th>Kedudukan</th></tr></thead>
-    <tbody>${rowsHTML.join('')}</tbody></table></body></html>`;
+    <div class="header"><img src="logo-mpks.png"><h2>Laporan Pemarkahan</h2><p>Tarikh: ${date}</p></div>`;
+
+    for (let i = 1; i <= teamCount; i++) {
+      const name = document.querySelector(`.teamName[data-team='${i}']`)?.value || `Pasukan ${i}`;
+      laporanHTML += `<h3>Pasukan: ${name} — <span style="font-weight:normal;">Jumlah Markah: ${totals[i].toFixed(1)} (${getRankForTeam(i, totals)})</span></h3>`;
+      laporanHTML += `<table><thead><tr><th>Bil</th><th>Nama Acara</th><th>Markah</th><th>Catatan</th></tr></thead><tbody>`;
+
+      for (let e = 0; e < eventsData.length; e++) {
+        const val = parseFloat(document.querySelector(`.score[data-event='${e + 1}'][data-team='${i}']`)?.value) || 0;
+        const note = document.querySelector(`.note[data-event='${e + 1}'][data-team='${i}']`)?.value || '';
+        laporanHTML += `<tr><td>${e + 1}</td><td>${eventsData[e].name}</td><td>${val.toFixed(1)}</td><td>${note}</td></tr>`;
+      }
+
+      laporanHTML += `</tbody></table><br>`;
+    }
+
+    laporanHTML += `</body></html>`;
 
     const w = window.open('', 'laporan-' + Date.now());
     w.document.write(laporanHTML);
