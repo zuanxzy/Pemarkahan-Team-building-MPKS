@@ -127,7 +127,7 @@ window.addEventListener("DOMContentLoaded", () => {
     if (eventsData.length <= 1) return alert('Tidak boleh padam — sekurang-kurangnya mesti ada satu acara.');
     if (confirm(`Padam "${eventsData[eventsData.length - 1].name}" ?`)) {
       eventsData.pop();
-      localStorage.setItem('eventsData', JSON.stringify(eventsData)); // simpan perubahan
+      localStorage.setItem('eventsData', JSON.stringify(eventsData));
       createEventsContainer(); loadData(); renderTeamSummary(); saveData();
     }
   });
@@ -189,7 +189,7 @@ window.addEventListener("DOMContentLoaded", () => {
     saveData();
   }
 
-  // ===== CETAK (VERSI RINGAN UNTUK PHONE) =====
+  // ===== CETAK (BUKA PAGE BARU UNTUK PHONE) =====
   document.getElementById('printBtn').addEventListener('click', () => {
     calculateAll();
     const totals = computeTotals();
@@ -203,8 +203,9 @@ window.addEventListener("DOMContentLoaded", () => {
       table{width:100%;border-collapse:collapse;margin-top:20px;}
       th,td{border:1px solid #000;padding:6px;text-align:center;}
       th{background:#f2f2f2;}
+      .print-btn{display:block;width:100%;padding:10px;margin:20px 0;text-align:center;background:#0d9488;color:#fff;font-weight:600;border-radius:8px;text-decoration:none;}
     </style></head><body>
-    <div class="header"><img src="logo-mpks.png"><h2>Laporan Pemarkahan</h2><p>Tarikh: ${date}</p></div>`;
+    <div class="header"><img src="logo-mpks.png"><h2>Laporan Pemarkahan Team Building MPKS</h2><p>Tarikh: ${date}</p></div>`;
 
     for (let i = 1; i <= teamCount; i++) {
       const name = document.querySelector(`.teamName[data-team='${i}']`)?.value || `Pasukan ${i}`;
@@ -220,16 +221,11 @@ window.addEventListener("DOMContentLoaded", () => {
       laporanHTML += `</tbody></table><br>`;
     }
 
-    laporanHTML += `</body></html>`;
+    laporanHTML += `<a href="javascript:window.print()" class="print-btn">🖨️ Cetak / Simpan PDF</a></body></html>`;
 
-    const printWin = window.open("", "_blank");
-    printWin.document.write(laporanHTML);
-    printWin.document.close();
-    setTimeout(() => {
-      printWin.focus();
-      printWin.print();
-      printWin.close();
-    }, 600);
+    const w = window.open('', '_blank');
+    w.document.write(laporanHTML);
+    w.document.close();
   });
 
   // ===== RESET =====
