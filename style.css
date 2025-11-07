@@ -1,0 +1,320 @@
+:root {
+  --bg:#0f1724;
+  --card:#0b1220aa;
+  --accent:linear-gradient(90deg,#4ade80,#06b6d4);
+  --glass-border:rgba(255,255,255,0.08);
+  --muted:#cbd5e1;
+  --glass-blur:10px;
+  --radius:16px;
+}
+
+/* Tajuk Acara Boleh Edit */
+.editable-title {
+  font-size: 15px;
+  margin: 0 0 10px 0;
+  outline: none;
+  border-bottom: 1px dashed rgba(255,255,255,0.2);
+  padding-bottom: 4px;
+  cursor: text;
+}
+.editable-title:focus {
+  border-bottom: 1px solid #4ade80;
+  background: rgba(74,222,128,0.05);
+}
+
+/* GLOBAL */
+* {
+  box-sizing: border-box;
+  font-family: "Poppins", "Segoe UI", sans-serif;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: radial-gradient(1200px 600px at 10% 10%, rgba(6,182,212,0.07), transparent),
+              radial-gradient(1000px 500px at 90% 90%, rgba(74,222,128,0.04), transparent),
+              var(--bg);
+  color: #e6eef8;
+  -webkit-font-smoothing: antialiased;
+  padding: 40px 32px 60px;
+  display: flex;
+  justify-content: center;
+}
+
+.wrap {
+  width: 1100px;
+  max-width: 96%;
+}
+
+/* HEADER */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28px;
+}
+
+.brand {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+}
+
+.logo {
+  width: 60px;
+  height: 60px;
+  border-radius: 14px;
+  background: linear-gradient(135deg,#240380,#971a1a);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 8px;
+}
+.logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+h1 {
+  font-size: 22px;
+  margin: 0 0 4px 0;
+}
+p.lead {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* CARD */
+.card {
+  background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(var(--glass-blur));
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-bottom: 20px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+}
+
+/* CONTROLS */
+.controls {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+.controls label {
+  font-size: 13px;
+  color: var(--muted);
+}
+input[type=number],
+input[type=text] {
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: transparent;
+  color: inherit;
+  min-width: 80px;
+}
+button {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.15);
+  color: inherit;
+  padding: 9px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+button:hover {
+  background: rgba(255,255,255,0.08);
+}
+button.primary {
+  background: var(--accent);
+  border: none;
+  color: #05201f;
+  font-weight: 600;
+}
+
+/* LAYOUT */
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 28px;
+}
+
+/* EVENT SECTION */
+.event {
+  padding: 18px;
+  border-radius: 14px;
+  margin-bottom: 16px;
+}
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8px;
+}
+.table th,
+.table td {
+  padding: 10px;
+  border-bottom: 1px dashed rgba(255,255,255,0.05);
+  font-size: 14px;
+}
+.table th {
+  color: var(--muted);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+.table input {
+  width: 100px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.02);
+  color: inherit;
+}
+
+/* SUMMARY */
+.summary {
+  position: sticky;
+  top: 24px;
+}
+.teams-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+}
+.team-card {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.025), transparent);
+  border: 1px solid rgba(255,255,255,0.05);
+}
+.actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+.muted {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* FOOTER */
+footer {
+  margin-top: 28px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* RESPONSIVE */
+@media (max-width:900px) {
+  body {
+    padding: 20px 12px;
+  }
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .card {
+    padding: 16px;
+  }
+  h1 {
+    font-size: 18px;
+  }
+  .controls {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  input, button {
+    font-size: 14px;
+  }
+}
+/* =========================
+   GAYA CETAK: TABLE RINGKAS
+========================= */
+@media print {
+  body {
+    background: #fff !important;
+    color: #000 !important;
+    font-family: "Segoe UI", sans-serif;
+    font-size: 13px;
+    margin: 0;
+    padding: 20px;
+  }
+
+  /* Sembunyikan elemen tidak perlu */
+  header, footer, .controls, .bottom-action, .events, button {
+    display: none !important;
+  }
+
+  /* Paparan penuh lebar */
+  .wrap {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  /* Logo dan tajuk laporan */
+  body::before {
+    content: "";
+    display: block;
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 10px;
+    background: url("logo-mpks.png") no-repeat center/contain;
+  }
+
+  h1::before {
+    display: none !important;
+  }
+
+  .summary {
+    position: static !important;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Ringkasan dalam bentuk jadual */
+  .teams-list {
+    display: block !important;
+  }
+
+  table.print-summary {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    font-size: 13px;
+  }
+
+  table.print-summary th,
+  table.print-summary td {
+    border: 1px solid #000;
+    padding: 6px 8px;
+    text-align: left;
+  }
+
+  table.print-summary th {
+    background: #f0f0f0;
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+  }
+
+  /* Info di bawah */
+  body::after {
+    content: "Laporan Pemarkahan Team Building — MPKS\nDicetak pada: " attr(data-print-date);
+    display: block;
+    text-align: center;
+    font-size: 12px;
+    margin-top: 16px;
+    white-space: pre-line;
+  }
+}

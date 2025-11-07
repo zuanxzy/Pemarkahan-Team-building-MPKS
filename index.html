@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="ms">
+<head>
+  <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Pemarkahan Team Building — MPKS</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <div class="logo">
+          <img src="logo-mpks.png" alt="Logo MPKS">
+        </div>
+        <div>
+          <h1>Pemarkahan Aktiviti Team Building — Unit Perundangan MPKS</h1>
+          <p class="lead">Tarikh: 15 November 2025</p>
+        </div>
+      </div>
+
+      <div class="controls">
+        <label>Bil. Pasukan</label>
+        <input id="teamCount" type="number" min="2" max="20" value="2">
+        <button id="applyCount">Set</button>
+        <button id="exportCsv">Eksport CSV</button>
+        <button id="reset">Reset</button>
+      </div>
+    </header>
+
+    <main class="grid">
+      <section class="card">
+        <div class="title-section">
+          <h2>Senarai Acara & Isian Markah</h2>
+          <div class="muted">Klik nama acara untuk ubah, dan tekan “+ Tambah Acara” untuk tambah baru.</div>
+        </div>
+
+        <div class="events" id="events"></div>
+
+<div class="bottom-action" style="margin-top:16px; display:flex; gap:10px; align-items:center;">
+  <button id="calculate" class="primary">Kira Jumlah & Kedudukan</button>
+  <button id="addEvent">+ Tambah Acara</button>
+</div>
+      </section>
+
+      <aside class="card summary">
+        <h3>Ringkasan Pasukan</h3>
+        <div class="teams-list" id="teamsList"></div>
+        <div class="actions">
+          <button id="printBtn">Cetak</button>
+        </div>
+      </aside>
+    </main>
+
+    <footer class="muted">Auto-simpan aktif — semua data kekal walaupun halaman ditutup.</footer>
+  </div>
+
+  <script>
+    // ===== DATA & KONFIGURASI =====
+    let eventsData = JSON.parse(localStorage.getItem('eventsData')) || [
+      { name: 'Acara 1' },
+      { name: 'Acara 2' },
+      { name: 'Acara 3' },
+      { name: 'Acara 4' },
+      { name: 'Acara 5' },
+      { name: 'Acara 6' }
+    ];
+    let teamCount = parseInt(localStorage.getItem('teamCount')) || 2;
+
+    // ===== CIPTA PAPARAN ACARA =====
+    function createEventsContainer() {
+      const events = document.getElementById('events');
+      events.innerHTML = '';
+
+      eventsData.forEach((event, index) => {
+        const e = index + 1;
+        const el = document.createElement('div');
+        el.className = 'event card';
+        el.innerHTML = `
+          <h3 contenteditable="true" class="editable-title" data-index="${index}">
+            ${event.name}
+          </h3>
+          <table class="table">
+            <thead><tr><th>Bil</th><th>Pasukan</th><th>Markah</th><th>Kedudukan</th><th>Catatan</th></tr></thead>
+            <tbody id="event-${e}-body"></tbody>
+          </table>`;
+        events.appendChild(el);
+        populateEventRows(e);
+      });
+
+      document.querySelectorAll('.editable-title').forEach(el => {
+        el.addEventListener('input', () => {
+          const idx = el.dataset.index;
+          eventsData[idx].name = el.innerText.trim() || `Acara ${parseInt(idx)+1}`;
+          saveData();
+        });
+      });
+    }
+
+    // ===== TAMBAH ACARA =====
+    document.getElementById('addEvent').addEventListener('click', () => {
+      const newIndex = eventsData.length + 1;
+      eventsData.push({ name: `Acara ${newIndex}` });
+      createEventsContainer();
+      loadData();
+      renderTeamSummary();
+      saveData();
+    });
+
+    // ===== CIPTA BARIS PASUKAN =====
+    function populateEventRows(eventNum) {
+      const tbody = document.getElementById(`event-${eventNum}-body`);
+      tbody.innerHTML = '';
+      for (let i=1; i<=teamCount; i++) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${i}</td>
+          <td><input type="text" class="teamName" data-team="${i}" value="Pasukan ${i}"></td>
+          <td><input type="number" min="0" step="0.1" class="score" data-event="${eventNum}" data-team="${i}" value="0"></td>
+          <td><input type="text" class="position" data-event="${eventNum}" data-team="${i}" readonly></td>
+          <td><input type="text" class="note" data-event="${eventNum}" data-team="${i}" placeholder="Catatan"></td>`;
+        tbody.appendChild(tr);
+      }
+    }
+
+    // ===== KIRA JUMLAH =====
+    function computeTotals() {
+      const totals = {};
+      for (let i=1;i<=teamCount;i++) totals[i]=0;
+      document.querySelectorAll('.score').forEach(inp=>{
+        const t=parseInt(inp.dataset.team,10);
+        const v=parseFloat(inp.value)||0;
+        totals[t]=(totals[t]||0)+v;
+      });
+      return totals;
+    }
+
+    function getRankForTeam(teamIndex, totalsObj) {
+      const arr=Object.keys(totalsObj).map(k=>({team:parseInt(k,10),val:totalsObj[k]}));
+      arr.sort((a,b)=>b.val-a.val);
+      const pos=arr.findIndex(x=>x.team===teamIndex)+1;
+      return pos===1?`#${pos} (Juara)`:`#${pos}`;
+    }
+
+    function calculateAll() {
+      for (let e=1;e<=eventsData.length;e++) {
+        const scores=[];
+        for (let t=1;t<=teamCount;t++) {
+          const inp=document.querySelector(`.score[data-event='${e}'][data-team='${t}']`);
+          const val=parseFloat(inp.value)||0;
+          scores.push({team:t,val});
+        }
+        scores.sort((a,b)=>b.val-a.val);
+        for (let i=0;i<scores.length;i++) {
+          const pos=i+1;
+          const team=scores[i].team;
+          const posInput=document.querySelector(`.position[data-event='${e}'][data-team='${team}']`);
+          posInput.value=`#${pos}`+(pos===1?" (Juara)":"");
+        }
+      }
+      renderTeamSummary();
+    }
+
+    // ===== PAPAR RINGKASAN =====
+    function renderTeamSummary() {
+      const container=document.getElementById('teamsList');
+      container.innerHTML='';
+      const totals=computeTotals();
+      for (let i=1;i<=teamCount;i++) {
+        const name=document.querySelector(`.teamName[data-team='${i}']`)?.value||`Pasukan ${i}`;
+        const total=totals[i]||0;
+        const div=document.createElement('div');
+        div.className='team-card';
+        div.innerHTML=`<div><strong>${name}</strong><div class="muted">Jumlah Markah: ${total.toFixed(1)}</div></div><div><strong>${getRankForTeam(i,totals)}</strong></div>`;
+        container.appendChild(div);
+      }
+      saveData();
+    }
+
+    // ===== SIMPAN & MUAT SEMULA =====
+    function saveData() {
+      const data=[];
+      document.querySelectorAll('.event').forEach((ev,idx)=>{
+        const acara=idx+1; const rows=[];
+        for(let t=1;t<=teamCount;t++){
+          const name=document.querySelector(`.teamName[data-team='${t}']`)?.value;
+          const score=document.querySelector(`.score[data-event='${acara}'][data-team='${t}']`)?.value;
+          const note=document.querySelector(`.note[data-event='${acara}'][data-team='${t}']`)?.value;
+          rows.push({name,score,note});
+        }
+        data.push(rows);
+      });
+      localStorage.setItem('teamCount',teamCount);
+      localStorage.setItem('pemarkahanData',JSON.stringify(data));
+      localStorage.setItem('eventsData',JSON.stringify(eventsData));
+    }
+
+    function loadData() {
+      const saved=localStorage.getItem('pemarkahanData');
+      if(!saved) return;
+      const data=JSON.parse(saved);
+      data.forEach((rows,idx)=>{
+        const acara=idx+1;
+        rows.forEach((r,i)=>{
+          const t=i+1;
+          const name=document.querySelector(`.teamName[data-team='${t}']`);
+          const score=document.querySelector(`.score[data-event='${acara}'][data-team='${t}']`);
+          const note=document.querySelector(`.note[data-event='${acara}'][data-team='${t}']`);
+          if(name) name.value=r.name;
+          if(score) score.value=r.score;
+          if(note) note.value=r.note;
+        });
+      });
+      renderTeamSummary();
+    }
+
+    // ===== EVENT LISTENERS =====
+document.getElementById('printBtn').addEventListener('click', () => {
+  document.activeElement.blur();
+  saveData();
+  calculateAll();
+
+  const totals = computeTotals();
+  const container = document.getElementById('teamsList');
+
+  // Bina table khas untuk cetakan
+  const printTable = document.createElement('table');
+  printTable.className = 'print-summary';
+  printTable.innerHTML = `
+    <thead>
+      <tr>
+        <th>Bil</th>
+        <th>Nama Pasukan</th>
+        <th>Jumlah Markah</th>
+        <th>Kedudukan</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  `;
+
+  const tbody = printTable.querySelector('tbody');
+  for (let i = 1; i <= teamCount; i++) {
+    const name = document.querySelector(`.teamName[data-team='${i}']`)?.value || `Pasukan ${i}`;
+    const total = totals[i] || 0;
+    const rank = getRankForTeam(i, totals);
+    const row = document.createElement('tr');
+    row.innerHTML = `<td>${i}</td><td>${name}</td><td>${total.toFixed(1)}</td><td>${rank}</td>`;
+    tbody.appendChild(row);
+  }
+
+  // Gantikan kad dengan table
+  container.innerHTML = '';
+  container.appendChild(printTable);
+
+  document.body.setAttribute('data-print-date', new Date().toLocaleString('ms-MY'));
+
+  setTimeout(() => {
+    window.print();
+  }, 300);
+});
+
+    document.getElementById('reset').addEventListener('click',()=>{if(confirm('Padam semua data?')){localStorage.clear();location.reload();}});
+
+    document.addEventListener('input', e=>{
+      if(e.target && (e.target.classList.contains('teamName')||e.target.classList.contains('score')||e.target.classList.contains('note'))){
+        renderTeamSummary();
+      }
+    });
+
+    // ===== EKSPORT CSV =====
+    function exportCSV(){
+      const totals=computeTotals();
+      let csv=`Acara,No,Pasukan,Markah,Catatan\n`;
+      eventsData.forEach((ev,index)=>{
+        const acaraNama=ev.name||`Acara ${index+1}`;
+        for(let t=1;t<=teamCount;t++){
+          const name=document.querySelector(`.teamName[data-team='${t}']`)?.value||`Pasukan ${t}`;
+          const score=document.querySelector(`.score[data-event='${index+1}'][data-team='${t}']`)?.value||0;
+          const note=document.querySelector(`.note[data-event='${index+1}'][data-team='${t}']`)?.value||'';
+          csv+=`${acaraNama},${t},"${name}",${score},"${note}"\n`;
+        }
+      });
+      csv+=`Jumlah,,Pasukan,Jumlah Markah\n`;
+      Object.keys(totals).forEach(k=>{
+        const name=document.querySelector(`.teamName[data-team='${k}']`)?.value||`Pasukan ${k}`;
+        csv+=`,${k},"${name}",${totals[k]}\n`;
+      });
+      const blob=new Blob([csv],{type:'text/csv'});
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a');a.href=url;a.download='pemarkahan_team_building.csv';a.click();URL.revokeObjectURL(url);
+    }
+
+    // ===== MULA =====
+    createEventsContainer();
+    loadData();
+    renderTeamSummary();
+  </script>
+</body>
+</html>
