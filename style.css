@@ -318,3 +318,35 @@ footer {
     white-space: pre-line;
   }
 }
+@media print {
+  /* ✅ Kurangkan beban render semasa cetak di telefon */
+  * {
+    box-shadow: none !important;
+    filter: none !important;
+    transition: none !important;
+    animation: none !important;
+  }
+
+  img {
+    max-width: 150px !important;
+  }
+
+  /* ✅ Pastikan Chrome/Android print preview tak delay lama */
+  html, body {
+    overflow: visible !important;
+    height: auto !important;
+  }
+
+  /* ✅ Elak Chrome re-render background gradient besar */
+  body {
+    background: #fff !important;
+  }
+
+  /* ✅ Jadikan cetakan lebih cepat tanpa tukar layout */
+  .card, .summary, .teams-list {
+    backdrop-filter: none !important;
+    background: #fff !important;
+    color: #000 !important;
+    box-shadow: none !important;
+  }
+}
