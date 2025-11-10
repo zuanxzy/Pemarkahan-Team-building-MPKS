@@ -1,12 +1,8 @@
 window.addEventListener("DOMContentLoaded", () => {
   // ===== DATA & KONFIGURASI =====
   let eventsData = JSON.parse(localStorage.getItem('eventsData')) || [
-    { name: 'Acara 1' },
-    { name: 'Acara 2' },
-    { name: 'Acara 3' },
-    { name: 'Acara 4' },
-    { name: 'Acara 5' },
-    { name: 'Acara 6' }
+    { name: 'Acara 1' }, { name: 'Acara 2' }, { name: 'Acara 3' },
+    { name: 'Acara 4' }, { name: 'Acara 5' }, { name: 'Acara 6' }
   ];
   let teamCount = parseInt(localStorage.getItem('teamCount')) || 2;
   let savedDate = localStorage.getItem('eventDate') || '';
@@ -41,9 +37,9 @@ window.addEventListener("DOMContentLoaded", () => {
       populateEventRows(e);
     });
 
-    // Nama acara boleh ubah terus
+    // Nama acara boleh edit
     document.querySelectorAll('.editable-title').forEach(el => {
-      el.addEventListener('input', () => {
+      el.addEventListener('blur', () => {
         const idx = el.dataset.index;
         eventsData[idx].name = el.innerText.trim() || `Acara ${parseInt(idx) + 1}`;
         saveData();
@@ -127,7 +123,6 @@ window.addEventListener("DOMContentLoaded", () => {
     if (eventsData.length <= 1) return alert('Tidak boleh padam — sekurang-kurangnya mesti ada satu acara.');
     if (confirm(`Padam "${eventsData[eventsData.length - 1].name}" ?`)) {
       eventsData.pop();
-      localStorage.setItem('eventsData', JSON.stringify(eventsData));
       createEventsContainer(); loadData(); renderTeamSummary(); saveData();
     }
   });
@@ -135,13 +130,15 @@ window.addEventListener("DOMContentLoaded", () => {
   // ===== BIL PASUKAN =====
   document.getElementById('applyCount').addEventListener('click', () => {
     const v = parseInt(document.getElementById('teamCount').value, 10);
-    if (!v || v < 2) return alert('Sila masukkan bilangan pasukan minimum 2');
-    teamCount = v; createEventsContainer(); loadData(); renderTeamSummary(); saveData();
+    if (!v || v < 2 || v > 20) return alert('Sila masukkan bilangan pasukan antara 2 hingga 20');
+    teamCount = v;
+    createEventsContainer(); loadData(); renderTeamSummary(); saveData();
   });
 
   // ===== PENGIRAAN =====
   function computeTotals() {
-    const totals = {}; for (let i = 1; i <= teamCount; i++) totals[i] = 0;
+    const totals = {};
+    for (let i = 1; i <= teamCount; i++) totals[i] = 0;
     document.querySelectorAll('.score').forEach(inp => {
       const t = +inp.dataset.team, v = parseFloat(inp.value) || 0;
       totals[t] += v;
@@ -157,6 +154,7 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 
   function calculateAll() {
+    // Kedudukan dalam setiap acara
     for (let e = 1; e <= eventsData.length; e++) {
       const scores = [];
       for (let t = 1; t <= teamCount; t++) {
@@ -166,66 +164,110 @@ window.addEventListener("DOMContentLoaded", () => {
       scores.sort((a, b) => b.val - a.val);
       scores.forEach((s, i) => {
         const posInput = document.querySelector(`.position[data-event='${e}'][data-team='${s.team}']`);
-        posInput.value = `#${i + 1}` + (i === 0 ? " (Juara)" : "");
+        if (posInput) posInput.value = `#${i + 1}` + (i === 0 ? " (Juara)" : "");
       });
     }
     renderTeamSummary();
   }
 
-  // ===== RINGKASAN =====
+  // ===== RINGKASAN PASUKAN =====
   function renderTeamSummary() {
     const container = document.getElementById('teamsList');
     container.innerHTML = '';
     const totals = computeTotals();
-    for (let i = 1; i <= teamCount; i++) {
-      const name = document.querySelector(`.teamName[data-team='${i}']`)?.value || `Pasukan ${i}`;
-      const total = totals[i] || 0;
+    const ranked = Object.keys(totals).map(t => ({ team: +t, total: totals[t] }))
+      .sort((a, b) => b.total - a.total || a.team - b.team);
+
+    ranked.forEach((r, idx) => {
+      const name = document.querySelector(`.teamName[data-team='${r.team}']`)?.value || `Pasukan ${r.team}`;
       const div = document.createElement('div');
       div.className = 'team-card';
-      div.innerHTML = `<div><strong>${name}</strong><div class="muted">Jumlah Markah: ${total.toFixed(1)}</div></div>
-                       <div><strong>${getRankForTeam(i, totals)}</strong></div>`;
+      const rankText = idx === 0 ? `Juara` : idx === 1 ? `Naib Juara` : idx === 2 ? `Ketiga` : `Kedudukan ${idx + 1}`;
+      div.innerHTML = `
+        <div><strong>${name}</strong></div>
+        <div class="muted">Jumlah: <strong>${r.total.toFixed(1)}</strong></div>
+        <div style="margin-top:4px; color:#50c878; font-weight:600;">${rankText}</div>`;
       container.appendChild(div);
-    }
+    });
     saveData();
   }
 
-  // ===== CETAK (BUKA PAGE BARU UNTUK PHONE) =====
-  document.getElementById('printBtn').addEventListener('click', () => {
+  // ===== CETAK (BUKA LAPORAN CANTIK) =====
+  function openPrintReport() {
     calculateAll();
     const totals = computeTotals();
     const date = dateInput.value ? new Date(dateInput.value).toLocaleDateString('ms-MY') : '—';
 
-    let laporanHTML = `
-    <html><head><title>Laporan Pemarkahan</title>
-    <style>
-      body { font-family: "Times New Roman", serif; margin: 20mm; color:#000; }
-      .header{text-align:center;} .header img{width:80px;height:80px;}
-      table{width:100%;border-collapse:collapse;margin-top:20px;}
-      th,td{border:1px solid #000;padding:6px;text-align:center;}
-      th{background:#f2f2f2;}
-      .print-btn{display:block;width:100%;padding:10px;margin:20px 0;text-align:center;background:#0d9488;color:#fff;font-weight:600;border-radius:8px;text-decoration:none;}
-    </style></head><body>
-    <div class="header"><img src="logo-mpks.png"><h2>Laporan Pemarkahan Team Building MPKS</h2><p>Tarikh: ${date}</p></div>`;
+    let html = `
+    <!DOCTYPE html>
+    <html lang="ms">
+    <head>
+      <meta charset="utf-8">
+      <title>Laporan Pemarkahan Team Building</title>
+      <style>
+        body { font-family: "Times New Roman", serif; margin: 20mm; color: #000; line-height: 1.5; }
+        .header { text-align: center; margin-bottom: 20px; }
+        .header img { width: 80px; height: 80px; }
+        h1 { margin: 10px 0; font-size: 1.6rem; }
+        h2 { margin: 25px 0 10px; border-bottom: 2px solid #000; padding-bottom: 5px; }
+        table { width: 100%; border-collapse: collapse; margin: 15px 0; font-size: 0.95rem; }
+        th, td { border: 1px solid #000; padding: 8px; text-align: center; }
+        th { background: #f0f0f0; }
+        .team-summary { page-break-inside: avoid; margin-bottom: 30px; }
+        .print-btn { display: block; width: 100%; max-width: 300px; margin: 30px auto; padding: 12px; background: #0d9488; color: white; text-align: center; font-weight: bold; border-radius: 8px; text-decoration: none; }
+        .footer { text-align: center; margin-top: 50px; font-size: 0.9rem; color: #555; }
+        @media print { .print-btn { display: none; } }
+      </style>
+    </head>
+    <body>
+      <div class="header">
+        <img src="logo-mpks.png" alt="MPKS">
+        <h1>Laporan Pemarkahan Team Building</h1>
+        <p>Unit Perundangan MPKS</p>
+        <p><strong>Tarikh Acara:</strong> ${date}</p>
+      </div>`;
 
+    // Jadual ringkasan keseluruhan
+    html += `<h2>Ringkasan Kedudukan Akhir</h2>
+      <table><tr><th>Kedudukan</th><th>Pasukan</th><th>Jumlah Markah</th></tr>`;
+    const ranked = Object.keys(totals).map(t => ({ team: +t, total: totals[t] }))
+      .sort((a, b) => b.total - a.total || a.team - b.team);
+    ranked.forEach((r, i) => {
+      const name = document.querySelector(`.teamName[data-team='${r.team}']`)?.value || `Pasukan ${r.team}`;
+      const rank = i === 0 ? 'Juara' : i === 1 ? 'Naib Juara' : i === 2 ? 'Tempat Ketiga' : `Kedudukan ${i + 1}`;
+      html += `<tr><td><strong>${rank}</strong></td><td>${name}</td><td><strong>${r.total.toFixed(1)}</strong></td></tr>`;
+    });
+    html += `</table>`;
+
+    // Butiran setiap pasukan
     for (let i = 1; i <= teamCount; i++) {
       const name = document.querySelector(`.teamName[data-team='${i}']`)?.value || `Pasukan ${i}`;
-      laporanHTML += `<h3>Pasukan: ${name} — <span style="font-weight:normal;">Jumlah Markah: ${totals[i].toFixed(1)} (${getRankForTeam(i, totals)})</span></h3>`;
-      laporanHTML += `<table><thead><tr><th>Bil</th><th>Nama Acara</th><th>Markah</th><th>Catatan</th></tr></thead><tbody>`;
-
+      html += `<div class="team-summary">
+        <h2>${name} — Jumlah: ${totals[i].toFixed(1)} (${getRankForTeam(i, totals)})</h2>
+        <table>
+          <tr><th>Bil</th><th>Acara</th><th>Markah</th><th>Kedudukan</th><th>Catatan</th></tr>`;
       for (let e = 0; e < eventsData.length; e++) {
-        const val = parseFloat(document.querySelector(`.score[data-event='${e + 1}'][data-team='${i}']`)?.value) || 0;
-        const note = document.querySelector(`.note[data-event='${e + 1}'][data-team='${i}']`)?.value || '';
-        laporanHTML += `<tr><td>${e + 1}</td><td>${eventsData[e].name}</td><td>${val.toFixed(1)}</td><td>${note}</td></tr>`;
+        const eventId = e + 1;
+        const score = parseFloat(document.querySelector(`.score[data-event='${eventId}'][data-team='${i}']`)?.value) || 0;
+        const pos = document.querySelector(`.position[data-event='${eventId}'][data-team='${i}']`)?.value || '-';
+        const note = document.querySelector(`.note[data-event='${eventId}'][data-team='${i}']`)?.value || '';
+        html += `<tr><td>${e + 1}</td><td>${eventsData[e].name}</td><td>${score.toFixed(1)}</td><td>${pos}</td><td>${note}</td></tr>`;
       }
-
-      laporanHTML += `</tbody></table><br>`;
+      html += `</table></div>`;
     }
 
-    laporanHTML += `<a href="javascript:window.print()" class="print-btn">🖨️ Cetak / Simpan PDF</a></body></html>`;
+    html += `<a href="javascript:window.print()" class="print-btn">Cetak / Simpan sebagai PDF</a>
+      <div class="footer">Dicetak pada: ${new Date().toLocaleString('ms-MY')}</div>
+    </body></html>`;
 
-    const w = window.open('', '_blank');
-    w.document.write(laporanHTML);
-    w.document.close();
+    const win = window.open('', '_blank');
+    win.document.write(html);
+    win.document.close();
+  }
+
+  // Pasang event pada KEDUA-DUA butang cetak
+  document.querySelectorAll('#printBtn, #printBtnSummary').forEach(btn => {
+    btn.addEventListener('click', openPrintReport);
   });
 
   // ===== RESET =====
