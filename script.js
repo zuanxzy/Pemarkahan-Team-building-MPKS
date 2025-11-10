@@ -14,7 +14,7 @@ window.addEventListener("DOMContentLoaded", () => {
     localStorage.setItem('eventDate', dateInput.value);
   });
 
-  // ===== CIPTA PAPARAN ACARA =====
+  // ===== CIPTA PAPARAN ACARA (DENGAN TABLE-CONTAINER) =====
   function createEventsContainer() {
     const events = document.getElementById('events');
     events.innerHTML = '';
@@ -27,12 +27,20 @@ window.addEventListener("DOMContentLoaded", () => {
         <h3 contenteditable="true" class="editable-title" data-index="${index}">
           ${event.name}
         </h3>
-        <table class="table">
-          <thead>
-            <tr><th>Bil</th><th>Pasukan</th><th>Markah</th><th>Kedudukan</th><th>Catatan</th></tr>
-          </thead>
-          <tbody id="event-${e}-body"></tbody>
-        </table>`;
+        <div class="table-container">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Bil</th>
+                <th>Pasukan</th>
+                <th>Markah</th>
+                <th>Kedudukan</th>
+                <th>Catatan</th>
+              </tr>
+            </thead>
+            <tbody id="event-${e}-body"></tbody>
+          </table>
+        </div>`;
       events.appendChild(el);
       populateEventRows(e);
     });
@@ -55,10 +63,10 @@ window.addEventListener("DOMContentLoaded", () => {
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td>${i}</td>
-        <td><input type="text" class="teamName" data-team="${i}" value="Pasukan ${i}"></td>
-        <td><input type="number" min="0" step="0.1" class="score" data-event="${eventNum}" data-team="${i}" value="0"></td>
-        <td><input type="text" class="position" data-event="${eventNum}" data-team="${i}" readonly></td>
-        <td><input type="text" class="note" data-event="${eventNum}" data-team="${i}" placeholder="Catatan"></td>`;
+        <td><input type="text" class="teamName" data-team="${i}" value="Pasukan ${i}" style="width:100%"></td>
+        <td><input type="number" min="0" step="0.1" class="score" data-event="${eventNum}" data-team="${i}" value="0" style="width:100%"></td>
+        <td><input type="text" class="position" data-event="${eventNum}" data-team="${i}" readonly style="width:100%"></td>
+        <td><input type="text" class="note" data-event="${eventNum}" data-team="${i}" placeholder="Catatan" style="width:100%"></td>`;
       tbody.appendChild(tr);
     }
 
@@ -154,7 +162,6 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 
   function calculateAll() {
-    // Kedudukan dalam setiap acara
     for (let e = 1; e <= eventsData.length; e++) {
       const scores = [];
       for (let t = 1; t <= teamCount; t++) {
@@ -203,20 +210,29 @@ window.addEventListener("DOMContentLoaded", () => {
     <html lang="ms">
     <head>
       <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>Laporan Pemarkahan Team Building</title>
       <style>
-        body { font-family: "Times New Roman", serif; margin: 20mm; color: #000; line-height: 1.5; }
+        body { font-family: "Times New Roman", serif; margin: 15mm; color: #000; line-height: 1.5; font-size: 14px; }
         .header { text-align: center; margin-bottom: 20px; }
-        .header img { width: 80px; height: 80px; }
-        h1 { margin: 10px 0; font-size: 1.6rem; }
-        h2 { margin: 25px 0 10px; border-bottom: 2px solid #000; padding-bottom: 5px; }
-        table { width: 100%; border-collapse: collapse; margin: 15px 0; font-size: 0.95rem; }
-        th, td { border: 1px solid #000; padding: 8px; text-align: center; }
-        th { background: #f0f0f0; }
-        .team-summary { page-break-inside: avoid; margin-bottom: 30px; }
-        .print-btn { display: block; width: 100%; max-width: 300px; margin: 30px auto; padding: 12px; background: #0d9488; color: white; text-align: center; font-weight: bold; border-radius: 8px; text-decoration: none; }
-        .footer { text-align: center; margin-top: 50px; font-size: 0.9rem; color: #555; }
-        @media print { .print-btn { display: none; } }
+        .header img { width: 70px; height: 70px; }
+        h1 { margin: 8px 0; font-size: 1.4rem; }
+        h2 { margin: 20px 0 8px; border-bottom: 1.5px solid #000; padding-bottom: 4px; font-size: 1.1rem; }
+        table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px; }
+        th, td { border: 1px solid #000; padding: 6px; text-align: center; }
+        th { background: #f0f0f0; font-weight: bold; }
+        .team-summary { page-break-inside: avoid; margin-bottom: 25px; }
+        .print-btn { display: block; width: 100%; max-width: 260px; margin: 25px auto; padding: 12px; background: #0d9488; color: white; text-align: center; font-weight: bold; border-radius: 8px; text-decoration: none; font-size: 16px; }
+        .footer { text-align: center; margin-top: 40px; font-size: 0.8rem; color: #555; }
+        @media print { 
+          .print-btn { display: none; } 
+          body { margin: 10mm; }
+        }
+        @media (max-width: 600px) {
+          body { margin: 10mm; font-size: 12px; }
+          table { font-size: 11px; }
+          th, td { padding: 4px; }
+        }
       </style>
     </head>
     <body>
@@ -227,7 +243,7 @@ window.addEventListener("DOMContentLoaded", () => {
         <p><strong>Tarikh Acara:</strong> ${date}</p>
       </div>`;
 
-    // Jadual ringkasan keseluruhan
+    // Ringkasan keseluruhan
     html += `<h2>Ringkasan Kedudukan Akhir</h2>
       <table><tr><th>Kedudukan</th><th>Pasukan</th><th>Jumlah Markah</th></tr>`;
     const ranked = Object.keys(totals).map(t => ({ team: +t, total: totals[t] }))
@@ -281,4 +297,5 @@ window.addEventListener("DOMContentLoaded", () => {
   // ===== MULA =====
   createEventsContainer();
   loadData();
+  
 });
