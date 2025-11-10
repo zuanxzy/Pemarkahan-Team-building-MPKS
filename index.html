@@ -1,11 +1,13 @@
 <!doctype html>
 <html lang="ms">
 <head>
+  <link href="https://rsms.me/inter/inter.css" rel="stylesheet">
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Pemarkahan Team Building — MPKS</title>
   <link rel="stylesheet" href="style.css">
   <meta name="theme-color" content="#1a1a1a">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
   <div class="wrap">
@@ -26,9 +28,13 @@
       <div class="controls">
         <label>Bil. Pasukan</label>
         <input id="teamCount" type="number" min="2" max="20" value="2">
-        <button id="applyCount">Set</button>
-        <button id="exportCsv">Eksport CSV</button>
-        <button id="reset">Reset</button>
+        <button id="applyCount" class="btn-outline">Set</button>
+        <button id="exportCsv" class="btn-outline">Eksport CSV</button>
+        <button id="calculate" class="btn-primary">Kira Jumlah & Kedudukan</button>
+        <button id="addEvent" class="btn-success">+ Tambah Acara</button>
+        <button id="removeEvent" class="btn-danger">– Kurangkan Acara</button>
+        <button id="printBtn" class="btn-outline">Cetak</button>
+        <button id="reset" class="btn-danger">Reset</button>
       </div>
     </header>
 
@@ -42,9 +48,6 @@
         <div class="events" id="events"></div>
 
         <div class="bottom-action" style="margin-top:16px; display:flex; gap:10px; align-items:center;">
-          <button id="calculate" class="primary">Kira Jumlah & Kedudukan</button>
-          <button id="addEvent">+ Tambah Acara</button>
-          <button id="removeEvent" class="danger">– Kurangkan Acara</button>
         </div>
       </section>
 
@@ -52,7 +55,7 @@
         <h3>Ringkasan Pasukan</h3>
         <div class="teams-list" id="teamsList"></div>
         <div class="actions">
-          <button id="printBtn">Cetak</button>
+          <button id="printBtnSummary" class="btn-outline">Cetak</button>
         </div>
       </aside>
     </main>
@@ -63,4 +66,3 @@
   <script src="script.js" defer></script>
 </body>
 </html>
-
