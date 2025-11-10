@@ -2,42 +2,96 @@
 <html lang="ms">
 <head>
   <meta charset="utf-8">
-  <title>Cetak Pemarkahan MPKS</title>
+  <title>Cetak Pemarkahan Team Building — MPKS</title>
+  <link href="https://rsms.me/inter/inter.css" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   <style>
-    body { background: white; color: black; }
-    .no-print { display: none; }
+    body { background: white; color: black; font-family: 'Inter', sans-serif; padding: 20px; line-height: 1.5; }
+    .print-header { text-align: center; margin-bottom: 30px; border-bottom: 3px solid #1a1a1a; padding-bottom: 15px; }
+    .print-header img { height: 70px; margin-bottom: 10px; }
+    .print-header h1 { font-size: 1.6rem; margin: 8px 0; }
+    .info { font-size: 0.95rem; color: #444; margin-top: 8px; }
+    table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 0.9rem; }
+    th, td { border: 1px solid #ccc; padding: 10px; text-align: center; }
+    th { background: #f0f0f0; font-weight: 600; }
+    .rank-table th { background: #e6f3ff; }
+    .gold { color: #d4af37; font-weight: bold; }
+    .silver { color: #aaa9ad; font-weight: bold; }
+    .bronze { color: #cd7f32; font-weight: bold; }
+    .footer { margin-top: 40px; text-align: center; font-size: 0.8rem; color: #666; }
+    @media print { body { padding: 10px; } }
   </style>
 </head>
 <body>
-  <div id="printArea"></div>
+  <div id="printArea">
+    <div class="print-header">
+      <img src="logo-mpks.png" alt="Logo MPKS">
+      <h1>Pemarkahan Aktiviti Team Building</h1>
+      <div>Unit Perundangan MPKS</div>
+      <div class="info" id="printDate"></div>
+    </div>
+
+    <h2 style="margin: 25px 0 10px;">Jadual Markah Mengikut Acara</h2>
+    <div id="scoresTable"></div>
+
+    <h2 style="margin: 35px 0 10px;">Kedudukan Akhir Pasukan</h2>
+    <div id="rankingsTable"></div>
+
+    <div class="footer">Dicetak pada: <span id="printTimestamp"></span></div>
+  </div>
 
   <script>
-    // Ambil data dari localStorage
-    const events = JSON.parse(localStorage.getItem('events') || '[]');
-    const teams = JSON.parse(localStorage.getItem('teams') || '[]');
+    const saved = localStorage.getItem('teambuilding-scores');
+    if (!saved) {
+      document.body.innerHTML = '<p style="text-align:center; color:red; margin-top:50px;">Tiada data untuk dicetak.</p>';
+      return;
+    }
+    const data = JSON.parse(saved);
+    const { events, teamCount, date } = data;
 
-    // Hasilkan layout sama dengan yang asal
-    let html = '<h1>Pemarkahan Team Building — Unit Perundangan MPKS</h1>';
-    html += '<table border="1" cellspacing="0" cellpadding="6"><tr><th>Acara</th>';
-    teams.forEach(t => html += `<th>${t}</th>`);
-    html += '</tr>';
+    const eventDate = date ? new Date(date).toLocaleDateString('ms-MY') : 'Tidak ditetapkan';
+    document.getElementById('printDate').textContent = `Tarikh Acara: ${eventDate}`;
+    document.getElementById('printTimestamp').textContent = new Date().toLocaleString('ms-MY');
 
+    // Jadual Markah
+    let scoresHTML = '<table><tr><th>Acara</th>';
+    for (let i = 1; i <= teamCount; i++) scoresHTML += `<th>Pasukan ${i}</th>`;
+    scoresHTML += '</tr>';
     events.forEach(ev => {
-      html += `<tr><td>${ev.name}</td>`;
-      teams.forEach((t, i) => {
-        html += `<td>${ev.scores[i] || ''}</td>`;
-      });
-      html += '</tr>';
+      scoresHTML += `<tr><td style="text-align:left; font-weight:500;">${ev.name}</td>`;
+      for (let i = 0; i < teamCount; i++) {
+        scoresHTML += `<td>${ev.scores[i] !== undefined && ev.scores[i] !== '' ? ev.scores[i] : '-'}</td>`;
+      }
+      scoresHTML += '</tr>';
     });
-    html += '</table>';
+    scoresHTML += '</table>';
+    document.getElementById('scoresTable').innerHTML = scoresHTML;
 
-    document.getElementById('printArea').innerHTML = html;
+    // Kedudukan Akhir
+    const teamTotals = Array(teamCount).fill(0);
+    const teamValid = Array(teamCount).fill(0);
+    events.forEach(event => {
+      const scores = event.scores.map(s => s === '' ? null : Number(s));
+      const validScores = scores.map((s, i) => ({ score: s, team: i })).filter(x => x.score !== null);
+      if (validScores.length === 0) return;
+      const sorted = [...validScores].sort((a, b) => b.score - a.score);
+      const rankMap = new Map();
+      sorted.forEach((item, idx) => { if (!rankMap.has(item.score)) rankMap.set(item.score, idx + 1); });
+      validScores.forEach(item => { teamTotals[item.team] += rankMap.get(item.score); teamValid[item.team]++; });
+    });
+    const rankings = teamTotals.map((total, i) => ({ team: i + 1, total, valid: teamValid[i] }))
+      .filter(t => t.valid > 0);
+    rankings.sort((a, b) => a.total - b.total || a.team - b.team);
 
-    // Auto buka dialog cetak lepas betul² load
-    window.onload = () => {
-      setTimeout(() => window.print(), 500);
-    };
+    let rankHTML = '<table class="rank-table"><tr><th>Kedudukan</th><th>Pasukan</th><th>Jumlah Markah Kedudukan</th></tr>';
+    rankings.forEach((r, idx) => {
+      const rankClass = idx === 0 ? 'gold' : idx === 1 ? 'silver' : idx === 2 ? 'bronze' : '';
+      rankHTML += `<tr><td class="${rankClass}">${idx + 1}</td><td>Pasukan ${r.team}</td><td>${r.total}</td></tr>`;
+    });
+    rankHTML += '</table>';
+    document.getElementById('rankingsTable').innerHTML = rankHTML;
+
+    window.onload = () => setTimeout(() => window.print(), 800);
   </script>
 </body>
 </html>
